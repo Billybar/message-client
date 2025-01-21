@@ -1,0 +1,11 @@
+# dir
+cryptopp_wrapper/
+x64/
+
+# sys files
+.DS_Store
+Thumbs.db
+
+# ide files
+*.vcxproj
+*.vcxproj.*
