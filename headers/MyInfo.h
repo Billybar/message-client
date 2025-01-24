@@ -78,6 +78,9 @@ public:
         isRegistered = true;
     }
 
+    // Seter
+    void setIsRegistered(bool status) { isRegistered = status; }
+
     // Getters
     const std::string& getUsername() const { return username; }
     const std::array<uint8_t, 16>& getUuid() const { return uuid; }

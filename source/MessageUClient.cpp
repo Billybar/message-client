@@ -3,9 +3,10 @@
 #include <iostream>
 #include <stdexcept>
 
+
 MessageUClient::MessageUClient(const std::string& serverInfoPath, const std::string& myInfoPath)
     : serverInfo(serverInfoPath)
-    , myInfo(myInfoPath)
+    , myInfo(myInfoPath) // Init list - prevents double initialization
 {
 }
 
@@ -13,10 +14,10 @@ void MessageUClient::registerUser() {
     try {
         std::string username;
         std::cout << "Enter username: ";
-        std::getline(std::cin, username);
-        username += '\0';
+        std::getline(std::cin >> std::ws, username);
+        username.push_back('\0');
 
-        Register reg;
+        Register reg{ myInfo };
         reg.registerUser(serverInfo.getAddress(), serverInfo.getPort(), username);
 
         // Reload my info after successful registration
@@ -25,6 +26,16 @@ void MessageUClient::registerUser() {
     }
     catch (const std::exception& e) {
         std::cout << "Registration failed: " << e.what() << std::endl;
+    }
+}
+
+void MessageUClient::requestClientsList() {
+    try {
+        RequestClientsList rcl;
+        rcl.getClientsList(serverInfo.getAddress(), serverInfo.getPort(), myInfo.getUuid());
+    }
+    catch (const std::exception& e) {
+        std::cout << "Failed to get clients list: " << e.what() << std::endl;
     }
 }
 
@@ -69,7 +80,7 @@ void MessageUClient::run() {
                     std::cout << "Must register first\n";
                 }
                 else {
-                    //requestClientsList();
+                    requestClientsList();
                 }
                 break;
             case 130:

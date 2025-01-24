@@ -13,36 +13,39 @@ void Register::registerUser(const std::string& address, int port, const std::str
     socket.connect(endpoint);
 
     sendRegistrationRequest(socket, username);
-    handleRegistrationResponse(socket);
+    handleRegistrationResponse(socket, username);
 }
 
 void Register::sendRegistrationRequest(boost::asio::ip::tcp::socket& socket, const std::string& username) {
-    // Prepare header
-    RequestHeader header{};
-    // header.clientId = 0; ClientID not exsit yet
-    header.version = VERSION;
-    header.code = REGISTER_CODE;
-    header.payloadSize = 255 + 160; // Username(255) + PublicKey(160)
+    std::vector<uint8_t> request;
 
-    // Prepare payload - username padded to 255 bytes
-    std::vector<uint8_t> payload(415, 0); // 255 + 160 bytes
-    std::copy(username.begin(), username.end(), payload.begin());
-    // TO DO: add public key to payload
+    // Client ID - 16 bytes of zeros
+    request.insert(request.end(), 16, 0);
 
-    // Send header + payload
-    std::array<boost::asio::const_buffer, 2> buffers = {
-        boost::asio::buffer(&header, sizeof(header)),
-        boost::asio::buffer(payload)
-    };
-    boost::asio::write(socket, buffers);
+    // Version - 1 byte
+    request.push_back(VERSION);
 
-    // Send header
-    //boost::asio::write(socket, boost::asio::buffer(&header, sizeof(header)));
-    // Send payload
-    //boost::asio::write(socket, boost::asio::buffer(payload));
+    // Code - 2 bytes (600 = 0x258 in little endian: 0x58 0x02)
+    request.push_back(0x58);
+    request.push_back(0x02);
+
+    // Payload size - 4 bytes (415 = 0x19F in little endian)
+    request.push_back(0x9F);
+    request.push_back(0x01);
+    request.push_back(0x00);
+    request.push_back(0x00);
+
+    // Username (null padded to 255 bytes)
+    request.insert(request.end(), username.begin(), username.end());
+    request.insert(request.end(), 255 - username.length(), 0);
+
+    // Public key (160 bytes)
+    request.insert(request.end(), 160, 0); // Add actual public key here
+
+    boost::asio::write(socket, boost::asio::buffer(request));
 }
 
-void Register::handleRegistrationResponse(boost::asio::ip::tcp::socket& socket) {
+void Register::handleRegistrationResponse(boost::asio::ip::tcp::socket& socket, const std::string& username) {
     // Read response header (7 bytes)
     std::array<uint8_t, 7> responseHeader;
     boost::asio::read(socket, boost::asio::buffer(responseHeader));
@@ -59,6 +62,44 @@ void Register::handleRegistrationResponse(boost::asio::ip::tcp::socket& socket) 
         std::array<uint8_t, 16> clientId;
         boost::asio::read(socket, boost::asio::buffer(clientId));
 
-        // TODO: Save client ID to me.info file
+        // --- Save client ID to my.info file
+        // Convert username and clientId to hex string
+        std::stringstream hexClientId;
+        for (const auto& byte : clientId) {
+            hexClientId << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
+        }
+
+        // Open file for writing
+        /*std::ofstream file("C:\\Users\\kipi\\source\\repos\\mmn15_client\\x64\\Debug\\my.info");
+        if (!file) {
+            throw std::runtime_error("Unable to create my.info file");
+        }*/
+
+        // Get executable directory path
+        char buffer[MAX_PATH];
+        GetModuleFileNameA(NULL, buffer, MAX_PATH);
+        std::string exePath(buffer);
+        std::string exeDir = exePath.substr(0, exePath.find_last_of("\\/"));
+
+        // Create my.info in executable directory
+        std::string filePath = exeDir + "\\my.info";
+        std::ofstream file(filePath);
+        if (!file) {
+            throw std::runtime_error("Unable to create my.info file");
+        }
+
+        // Extract actual username by removing NULL terminator from buffer
+        std::string usernameStr(reinterpret_cast<const char*>(username.data()));
+        usernameStr = usernameStr.substr(0, usernameStr.find('\0'));
+
+        // Write username, client ID and private key
+        file << usernameStr << std::endl;
+        file << hexClientId.str() << std::endl;
+        // -- TO DO: -- file << m_rsaPrivate.getPrivateKey() << std::endl;
+
+        file.close();
+
+        // update register status
+        myInfo.setIsRegistered(true);
     }
 }

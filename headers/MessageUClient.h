@@ -4,6 +4,7 @@
 #include "ServerInfo.h"
 #include "MyInfo.h"
 #include "Register.h"
+#include "RequestClientsList.h"
 
 class MessageUClient {
 private:
@@ -20,7 +21,7 @@ public:
 
     // Menu operations
     void registerUser();
-    //void requestClientsList();
+    void requestClientsList();
     //void requestPublicKey();
     //void requestWaitingMessages();
     //void sendTextMessage();
