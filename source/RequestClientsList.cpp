@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <stdexcept>
 
+
 void RequestClientsList::getClientsList(const std::string& address, int port, const std::array<uint8_t, 16>& myId) {
     boost::asio::io_context io_context;
     boost::asio::ip::tcp::socket socket(io_context);
@@ -34,7 +35,6 @@ void RequestClientsList::sendListRequest(boost::asio::ip::tcp::socket& socket, c
 }
 
 void RequestClientsList::handleListResponse(boost::asio::ip::tcp::socket& socket) {
-    // Read response header
     std::array<uint8_t, 7> responseHeader;
     boost::asio::read(socket, boost::asio::buffer(responseHeader));
 
@@ -46,21 +46,21 @@ void RequestClientsList::handleListResponse(boost::asio::ip::tcp::socket& socket
     }
 
     if (responseCode == 2101 && payloadSize > 0) {
-        // Each client entry is 271 bytes (16 bytes ID + 255 bytes username)
+        m_clients.clear();
         size_t numClients = payloadSize / 271;
 
         for (size_t i = 0; i < numClients; i++) {
-            // Read client ID
             std::array<uint8_t, 16> clientId;
             boost::asio::read(socket, boost::asio::buffer(clientId));
 
-            // Read username
-            std::array<char, 255> username;
-            boost::asio::read(socket, boost::asio::buffer(username));
+            std::array<char, 255> usernameBuffer;
+            boost::asio::read(socket, boost::asio::buffer(usernameBuffer));
 
-            // Print username (up to null terminator)
-            std::string usernameStr(username.data());
-            std::cout << usernameStr.substr(0, usernameStr.find('\0')) << std::endl;
+            std::string username(usernameBuffer.data());
+            username = username.substr(0, username.find('\0'));
+
+            m_clients.emplace_back(clientId, username);
+            std::cout << username << std::endl;
         }
     }
 }

@@ -1,4 +1,4 @@
-// MessageU.cpp
+// MessageUMessage.cpp
 #include "..\headers\MessageUClient.h"
 #include <iostream>
 #include <stdexcept>
@@ -19,10 +19,6 @@ void MessageUClient::registerUser() {
 
         Register reg{ myInfo };
         reg.registerUser(serverInfo.getAddress(), serverInfo.getPort(), username);
-
-        // Reload my info after successful registration
-        //myInfo.reload();
-
     }
     catch (const std::exception& e) {
         std::cout << "Registration failed: " << e.what() << std::endl;
@@ -31,11 +27,32 @@ void MessageUClient::registerUser() {
 
 void MessageUClient::requestClientsList() {
     try {
-        RequestClientsList rcl;
+        m_clients.clear();
+        RequestClientsList rcl(m_clients);
         rcl.getClientsList(serverInfo.getAddress(), serverInfo.getPort(), myInfo.getUuid());
     }
     catch (const std::exception& e) {
         std::cout << "Failed to get clients list: " << e.what() << std::endl;
+    }
+}
+
+void MessageUClient::requestPublicKey() {
+    try {
+        RequestPublicKey rpk(m_clients);  // Pass clients vector reference
+        rpk.getPublicKey(serverInfo.getAddress(), serverInfo.getPort(), myInfo.getUuid());
+    }
+    catch (const std::exception& e) {
+        std::cout << "Failed to get public key: " << e.what() << std::endl;
+    }
+}
+
+void MessageUClient::requestWaitingMessages() {
+    try {
+        RequestWaitingMessages rwm(m_clients);
+        rwm.getWaitingMessages(serverInfo.getAddress(), serverInfo.getPort(), myInfo.getUuid());
+    }
+    catch (const std::exception& e) {
+        std::cout << "Failed to get waiting messages: " << e.what() << std::endl;
     }
 }
 
@@ -88,7 +105,7 @@ void MessageUClient::run() {
                     std::cout << "Must register first\n";
                 }
                 else {
-                   // requestPublicKey();
+                   requestPublicKey();
                 }
                 break;
             case 140:
@@ -96,7 +113,7 @@ void MessageUClient::run() {
                     std::cout << "Must register first\n";
                 }
                 else {
-                    //requestWaitingMessages();
+                    requestWaitingMessages();
                 }
                 break;
             case 150:

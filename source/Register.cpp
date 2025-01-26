@@ -1,3 +1,4 @@
+// Register.cpp
 #include "../headers/Register.h"
 #include <array>
 #include <vector>
@@ -101,5 +102,6 @@ void Register::handleRegistrationResponse(boost::asio::ip::tcp::socket& socket, 
 
         // update register status
         myInfo.setIsRegistered(true);
+        myInfo.reload(filePath);
     }
 }

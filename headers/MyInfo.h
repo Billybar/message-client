@@ -97,4 +97,34 @@ public:
         std::cout << std::endl;
         std::cout << "Private Key: " << privateKey << std::endl;
     }
+
+    void reload(const std::string& filePath) {
+        std::ifstream file(filePath);
+        if (!file) {
+            isRegistered = false;
+            return;
+        }
+
+        std::string line;
+
+        // Read username
+        if (std::getline(file, line)) {
+            username = line;
+        }
+
+        // Read UUID hex string and convert to bytes
+        if (std::getline(file, line)) {
+            for (size_t i = 0; i < 32; i += 2) {
+                uuid[i / 2] = std::stoi(line.substr(i, 2), nullptr, 16);
+            }
+        }
+
+        // Read private key
+        if (std::getline(file, line)) {
+            privateKey = line;
+        }
+
+        isRegistered = true;
+        file.close();
+    }
 };
