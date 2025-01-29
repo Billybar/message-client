@@ -10,7 +10,7 @@
 class Register {
 public:
     Register(MyInfo& myInfoRef) : myInfo(myInfoRef) {}
-    void registerUser(const std::string& address, int port, const std::string& username);
+    void registerUser(const std::string& address, int port);
 
 private:
     MyInfo& myInfo;

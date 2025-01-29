@@ -1,5 +1,5 @@
 // MessageUMessage.cpp
-#include "..\headers\MessageUClient.h"
+#include "../headers/MessageUClient.h"
 #include <iostream>
 #include <stdexcept>
 
@@ -8,17 +8,27 @@ MessageUClient::MessageUClient(const std::string& serverInfoPath, const std::str
     : serverInfo(serverInfoPath)
     , myInfo(myInfoPath) // Init list - prevents double initialization
 {
+    // Generate private/public key pair if user not registered
+    if (!myInfo.getIsRegistered()) {
+        RSAPrivateWrapper rsaPrivate;
+        std::string privateKey = rsaPrivate.getPrivateKey();
+
+        // Get public key in binary format
+        std::vector<uint8_t> publicKeyBin(160);
+        rsaPrivate.getPublicKey(reinterpret_cast<char*>(publicKeyBin.data()), 160);
+
+        Base64Wrapper base64;
+        std::string encodedPrivateKey = base64.encode(privateKey);
+
+        myInfo.setPrivateKey(encodedPrivateKey);
+        myInfo.setPublicKey(publicKeyBin);
+    }
 }
 
 void MessageUClient::registerUser() {
     try {
-        std::string username;
-        std::cout << "Enter username: ";
-        std::getline(std::cin >> std::ws, username);
-        username.push_back('\0');
-
         Register reg{ myInfo };
-        reg.registerUser(serverInfo.getAddress(), serverInfo.getPort(), username);
+        reg.registerUser(serverInfo.getAddress(), serverInfo.getPort());
     }
     catch (const std::exception& e) {
         std::cout << "Registration failed: " << e.what() << std::endl;
@@ -53,6 +63,36 @@ void MessageUClient::requestWaitingMessages() {
     }
     catch (const std::exception& e) {
         std::cout << "Failed to get waiting messages: " << e.what() << std::endl;
+    }
+}
+
+void MessageUClient::sendTextMessage() {
+    try {
+        SendTextMessage stm(m_clients);
+        stm.sendMessage(serverInfo.getAddress(), serverInfo.getPort(), myInfo.getUuid());
+    }
+    catch (const std::exception& e) {
+        std::cout << "Failed to send message: " << e.what() << std::endl;
+    }
+}
+
+void MessageUClient::sendSymKeyRequest() {
+    try {
+        SendSymKeyRequest ssr(m_clients);
+        ssr.sendRequest(serverInfo.getAddress(), serverInfo.getPort(), myInfo.getUuid());
+    }
+    catch (const std::exception& e) {
+        std::cout << "Failed to send symmetric key request: " << e.what() << std::endl;
+    }
+}
+
+void MessageUClient::sendSymKey() {
+    try {
+        SendSymKey ssk(m_clients);
+        ssk.sendKey(serverInfo.getAddress(), serverInfo.getPort(), myInfo.getUuid());
+    }
+    catch (const std::exception& e) {
+        std::cout << "Failed to send symmetric key: " << e.what() << std::endl;
     }
 }
 
@@ -121,7 +161,7 @@ void MessageUClient::run() {
                     std::cout << "Must register first\n";
                 }
                 else {
-                    //sendTextMessage();
+                    sendTextMessage();
                 }
                 break;
             case 151:
@@ -129,7 +169,7 @@ void MessageUClient::run() {
                     std::cout << "Must register first\n";
                 }
                 else {
-                    //sendSymKeyRequest();
+                    sendSymKeyRequest();
                 }
                 break;
             case 152:
@@ -137,7 +177,7 @@ void MessageUClient::run() {
                     std::cout << "Must register first\n";
                 }
                 else {
-                    //sendSymKey();
+                    sendSymKey();
                 }
                 break;
             case 0:

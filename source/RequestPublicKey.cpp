@@ -82,6 +82,14 @@ void RequestPublicKey::handlePublicKeyResponse(boost::asio::ip::tcp::socket& soc
 
         if (clientIt != m_clients.end()) {
             clientIt->setPublicKey(publicKey);
+
+            // Print the public key in hex format
+            std::cout << "Received public key for " << clientIt->getUsername() << ":" << std::endl;
+            for (const auto& byte : publicKey) {
+                std::cout << std::hex << std::setw(2) << std::setfill('0')
+                    << static_cast<int>(byte);
+            }
+            std::cout << std::dec << std::endl;
         }
     }
 }

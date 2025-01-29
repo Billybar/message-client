@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <array>
+#include <vector>
 #include <fstream>
 #include <stdexcept>
 #include <iostream>
@@ -11,6 +12,7 @@ private:
     std::string username;
     std::array<uint8_t, 16> uuid;
     std::string privateKey;
+    std::vector<uint8_t> publicKey; // binary
     bool isRegistered;
 
 public:
@@ -80,11 +82,14 @@ public:
 
     // Seter
     void setIsRegistered(bool status) { isRegistered = status; }
-
+    void setPrivateKey(const std::string& key) { privateKey = key; }
+    void setPublicKey(const std::vector<uint8_t>& key) { publicKey = key; }
+    
     // Getters
     const std::string& getUsername() const { return username; }
     const std::array<uint8_t, 16>& getUuid() const { return uuid; }
     const std::string& getPrivateKey() const { return privateKey; }
+    const std::vector<uint8_t> getPublicKey() const { return publicKey; }
     bool getIsRegistered() const { return isRegistered; }
 
     void print() const {

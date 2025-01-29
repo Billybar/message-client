@@ -4,14 +4,20 @@
 #include <vector>
 #include <stdexcept>
 
-void Register::registerUser(const std::string& address, int port, const std::string& username) {
-    boost::asio::io_context io_context;
-    boost::asio::ip::tcp::socket socket(io_context);
+void Register::registerUser(const std::string& address, int port) {
 
-    // Connect to server
-    boost::asio::ip::tcp::endpoint endpoint(
+    // Get user name from User
+    std::string username;
+    std::cout << "Enter username: ";
+    std::getline(std::cin >> std::ws, username);
+    username.push_back('\0');
+
+    
+    boost::asio::io_context io_context;                 // create communication object
+    boost::asio::ip::tcp::socket socket(io_context);    // create TCP communication
+    boost::asio::ip::tcp::endpoint endpoint(            // Set endpoint (server)
         boost::asio::ip::address::from_string(address), port);
-    socket.connect(endpoint);
+    socket.connect(endpoint);                           // Connect to server
 
     sendRegistrationRequest(socket, username);
     handleRegistrationResponse(socket, username);
@@ -19,6 +25,7 @@ void Register::registerUser(const std::string& address, int port, const std::str
 
 void Register::sendRegistrationRequest(boost::asio::ip::tcp::socket& socket, const std::string& username) {
     std::vector<uint8_t> request;
+    std::vector<uint8_t> publicKey = myInfo.getPublicKey();
 
     // Client ID - 16 bytes of zeros
     request.insert(request.end(), 16, 0);
@@ -41,7 +48,7 @@ void Register::sendRegistrationRequest(boost::asio::ip::tcp::socket& socket, con
     request.insert(request.end(), 255 - username.length(), 0);
 
     // Public key (160 bytes)
-    request.insert(request.end(), 160, 0); // Add actual public key here
+    request.insert(request.end(), publicKey.begin(), publicKey.end());
 
     boost::asio::write(socket, boost::asio::buffer(request));
 }
@@ -70,11 +77,6 @@ void Register::handleRegistrationResponse(boost::asio::ip::tcp::socket& socket, 
             hexClientId << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte);
         }
 
-        // Open file for writing
-        /*std::ofstream file("C:\\Users\\kipi\\source\\repos\\mmn15_client\\x64\\Debug\\my.info");
-        if (!file) {
-            throw std::runtime_error("Unable to create my.info file");
-        }*/
 
         // Get executable directory path
         char buffer[MAX_PATH];
@@ -96,7 +98,7 @@ void Register::handleRegistrationResponse(boost::asio::ip::tcp::socket& socket, 
         // Write username, client ID and private key
         file << usernameStr << std::endl;
         file << hexClientId.str() << std::endl;
-        // -- TO DO: -- file << m_rsaPrivate.getPrivateKey() << std::endl;
+        file << myInfo.getPrivateKey() << std::endl;
 
         file.close();
 
