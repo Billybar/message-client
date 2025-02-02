@@ -3,8 +3,8 @@
 #include <boost/asio.hpp>
 #include <vector>
 #include "Client.h"
-//#include "AESWrapper.h"
-//#include "RSAWrapper.h"
+#include "../cryptopp_wrapper/AESWrapper.h"
+#include "../cryptopp_wrapper/RSAWrapper.h"
 
 class SendSymKey {
 private:

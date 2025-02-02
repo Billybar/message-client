@@ -20,10 +20,17 @@ private:
     MyInfo myInfo;
     std::vector<Client> m_clients;
 
+    // Helper methods declarations
+    static std::string getExeDirectory();
+    static std::string getServerInfoPath();
+    static std::string getMyInfoPath();
+
 public:
-    // Constructor that accepts paths to config files
-    MessageUClient(const std::string& serverInfoPath = "C:\\Users\\kipi\\source\\repos\\mmn15_client\\x64\\Debug\\server.info",
-        const std::string& myInfoPath = "C:\\Users\\kipi\\source\\repos\\mmn15_client\\x64\\Debug\\my.info");
+    // Default constructor - uses dynamic paths
+    MessageUClient();
+
+    // Constructor with custom paths
+    MessageUClient(const std::string& serverInfoPath, const std::string& myInfoPath);
 
     // Main run loop
     void run();

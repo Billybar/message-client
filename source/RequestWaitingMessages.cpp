@@ -100,7 +100,37 @@ void RequestWaitingMessages::handleWaitingMessagesResponse(boost::asio::ip::tcp:
                             return client.getId() == fromClient;
                         });
                     if (clientIt != m_clients.end()) {
-                        clientIt->setSymmetricKey(content);
+                        try {
+                            // Get and decode the private key from Base64
+                            std::string privKeyStr = m_myInfo.getPrivateKey();
+                            std::cout << "Private key before decoding: " << privKeyStr << std::endl;
+
+                            std::string decodedKey = Base64Wrapper::decode(privKeyStr);
+
+                            // Create RSA wrapper with decoded key
+                            RSAPrivateWrapper rsaPrivate(decodedKey);
+
+                            // Decrypt the symmetric key
+                            std::string decryptedKey = rsaPrivate.decrypt(
+                                reinterpret_cast<const char*>(content.data()),
+                                content.size()
+                            );
+
+                            // Store decrypted symmetric key
+                            std::vector<uint8_t> keyBytes(decryptedKey.begin(), decryptedKey.end());
+                            clientIt->setSymmetricKey(keyBytes);
+
+                            // Print the decrypted symmetric key
+                            std::cout << "Decrypted symmetric key: ";
+                            for (char byte : keyBytes) {
+                                printf("%02x", static_cast<uint8_t>(byte));
+                            }
+                            std::cout << std::endl;
+
+                        }
+                        catch (const std::exception& e) {
+                            std::cerr << "Error decrypting symmetric key: " << e.what() << std::endl;
+                        }
                     }
                 }
                 break;

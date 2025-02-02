@@ -29,23 +29,63 @@ void SendSymKey::sendKey(const std::string& address, int port,
 
     // -------------- START WITH CRYPTO -----------------------
 
-    //// Generate symmetric key    -- TO DO --
-    //unsigned char symKey[AESWrapper::DEFAULT_KEYLENGTH];
-    //AESWrapper::GenerateKey(symKey, AESWrapper::DEFAULT_KEYLENGTH);
+    // Generate symmetric key    -- TO DO --
+    unsigned char symKey[AESWrapper::DEFAULT_KEYLENGTH];
+    AESWrapper::GenerateKey(symKey, AESWrapper::DEFAULT_KEYLENGTH);
 
-    //// Create RSA wrapper with client's public key  -- TO DO --
-    //RSAPublicWrapper rsaPublic(std::string(clientIt->getPublicKey().begin(),
-    //    clientIt->getPublicKey().end()));
+    // Create RSA wrapper with client's public key  -- TO DO --
+    RSAPublicWrapper rsaPublic(std::string(clientIt->getPublicKey().begin(),
+        clientIt->getPublicKey().end()));
 
-    //// Encrypt symmetric key with client's public key  -- TO DO --
-    //std::string encryptedKey = rsaPublic.encrypt(
-    //    reinterpret_cast<const char*>(symKey),
-    //    AESWrapper::DEFAULT_KEYLENGTH
-    //);
+    // Encrypt symmetric key with client's public key  -- TO DO --
+    std::string encryptedKey = rsaPublic.encrypt(
+        reinterpret_cast<const char*>(symKey),
+        AESWrapper::DEFAULT_KEYLENGTH
+    );
 
+
+    // Store symmetric key for this client
+    std::vector<uint8_t> symKeyVec(symKey, symKey + AESWrapper::DEFAULT_KEYLENGTH);
+    clientIt->setSymmetricKey(symKeyVec);
+
+    // 
+    std::vector<uint8_t> encryptedKeyVec(encryptedKey.begin(), encryptedKey.end());
+
+    // Print the sym Key Vec
+    std::cout << "sym Key Vec (store): ";
+    for (uint8_t byte : symKeyVec) {
+        printf("%02x", byte);
+    }
+    std::cout << std::endl;
+
+    // Print the encrypted key
+    std::cout << "Encrypted key (Send): ";
+    for (uint8_t byte : encryptedKeyVec) {
+        printf("%02x", byte);
+    }
+    std::cout << std::endl;
+
+    // Send encrypted key
+    boost::asio::io_context io_context;
+    boost::asio::ip::tcp::socket socket(io_context);
+    boost::asio::ip::tcp::endpoint endpoint(
+        boost::asio::ip::address::from_string(address), port);
+
+    socket.connect(endpoint);
+    sendSymKeyRequest(socket, myId, clientIt->getId(), encryptedKeyVec);
+    handleResponse(socket);
+
+    // -------------- END WITH CRYPTO -----------------------
+
+
+
+    //______________ START WITHOUT CRYPTO ___________________
+    
+    // Generate dummy symmetric key for now
+    //std::vector<uint8_t> dummySymKey(16, 0x42);  // 16 bytes filled with 0x42
+    //std::vector<uint8_t> dummyEncryptedKey(32, 0x42);  // Simulated encrypted key
 
     //// Store symmetric key for this client
-    //std::vector<uint8_t> symKeyVec(symKey, symKey + AESWrapper::DEFAULT_KEYLENGTH);
     //clientIt->setSymmetricKey(dummySymKey);
 
     //// Send encrypted key
@@ -55,32 +95,8 @@ void SendSymKey::sendKey(const std::string& address, int port,
     //    boost::asio::ip::address::from_string(address), port);
 
     //socket.connect(endpoint);
-    //sendSymKeyRequest(socket, myId, clientIt->getId(),
-    //    std::vector<uint8_t>(encryptedKey.begin(), encryptedKey.end()));
+    //sendSymKeyRequest(socket, myId, clientIt->getId(), dummyEncryptedKey);
     //handleResponse(socket);
-
-    // -------------- END WITH CRYPTO -----------------------
-
-
-
-    //______________ START WITHOUT CRYPTO ___________________
-    
-    // Generate dummy symmetric key for now
-    std::vector<uint8_t> dummySymKey(16, 0x42);  // 16 bytes filled with 0x42
-    std::vector<uint8_t> dummyEncryptedKey(32, 0x42);  // Simulated encrypted key
-
-    // Store symmetric key for this client
-    clientIt->setSymmetricKey(dummySymKey);
-
-    // Send encrypted key
-    boost::asio::io_context io_context;
-    boost::asio::ip::tcp::socket socket(io_context);
-    boost::asio::ip::tcp::endpoint endpoint(
-        boost::asio::ip::address::from_string(address), port);
-
-    socket.connect(endpoint);
-    sendSymKeyRequest(socket, myId, clientIt->getId(), dummyEncryptedKey);
-    handleResponse(socket);
 
     //______________ END WITHOUT CRYPTO ___________________
 }

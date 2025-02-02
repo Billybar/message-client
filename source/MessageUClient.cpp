@@ -3,10 +3,28 @@
 #include <iostream>
 #include <stdexcept>
 
+// ---- START of Get Exectuable Directory ----- //
 
-MessageUClient::MessageUClient(const std::string& serverInfoPath, const std::string& myInfoPath)
-    : serverInfo(serverInfoPath)
-    , myInfo(myInfoPath) // Init list - prevents double initialization
+std::string MessageUClient::getExeDirectory() {
+    char buffer[MAX_PATH];
+    GetModuleFileNameA(NULL, buffer, MAX_PATH);
+    std::string exePath(buffer);
+    return exePath.substr(0, exePath.find_last_of("\\/"));
+}
+
+std::string MessageUClient::getServerInfoPath() {
+    return getExeDirectory() + "\\server.info";
+}
+
+std::string MessageUClient::getMyInfoPath() {
+    return getExeDirectory() + "\\my.info";
+}
+// ---- END of Get Exectuable Directory ----- //
+
+
+MessageUClient::MessageUClient()
+    : serverInfo(getServerInfoPath())
+    , myInfo(getMyInfoPath())       // init params before constructor body
 {
     // Generate private/public key pair if user not registered
     if (!myInfo.getIsRegistered()) {
@@ -58,7 +76,7 @@ void MessageUClient::requestPublicKey() {
 
 void MessageUClient::requestWaitingMessages() {
     try {
-        RequestWaitingMessages rwm(m_clients);
+        RequestWaitingMessages rwm(m_clients, myInfo);
         rwm.getWaitingMessages(serverInfo.getAddress(), serverInfo.getPort(), myInfo.getUuid());
     }
     catch (const std::exception& e) {
