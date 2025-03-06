@@ -22,7 +22,7 @@ public:
             isRegistered = true;
         }
         catch (const std::runtime_error& e) {
-            // File doesn't exist or other error - user not registered
+            // TO DO: File doesn't exist or other error - user not registered
         }
     }
 
@@ -49,7 +49,11 @@ public:
         }
 
         // Read private key in base64 format
-        std::getline(infoFile, privateKey);
+        privateKey.clear();
+        std::string line;
+        while (std::getline(infoFile, line)) {
+            privateKey += line;  // Just append each line without adding newlines
+        }
     }
 
     void writeToFile(const std::string& filePath, const std::string& newUsername,
@@ -82,7 +86,7 @@ public:
 
     // Seter
     void setIsRegistered(bool status) { isRegistered = status; }
-    void setPrivateKey(const std::string& key) { privateKey = key; }
+    void setPrivateKey(const std::string& key) { privateKey = key; std::cout << "private Key:\n" << privateKey << std::endl;}
     void setPublicKey(const std::vector<uint8_t>& key) { publicKey = key; }
     
     // Getters
@@ -100,7 +104,15 @@ public:
                 << static_cast<int>(b);
         }
         std::cout << std::endl;
-        std::cout << "Private Key: " << privateKey << std::endl;
+
+        std::cout << "Private key:" << std::endl;
+        for (size_t i = 0; i < privateKey.length(); i++) {
+            std::cout << privateKey[i];
+            if ((i + 1) % 64 == 0) {
+                std::cout << " <LINE END>" << std::endl;  // line end
+            }
+        }
+        std::cout << " <KEY END>" << std::endl;  // end of key
     }
 
     void reload(const std::string& filePath) {
@@ -124,9 +136,10 @@ public:
             }
         }
 
-        // Read private key
-        if (std::getline(file, line)) {
-            privateKey = line;
+        // Read private key - read all remaining lines
+        privateKey.clear();
+        while (std::getline(file, line)) {
+            privateKey += line;
         }
 
         isRegistered = true;

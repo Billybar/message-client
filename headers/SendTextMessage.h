@@ -3,7 +3,7 @@
 #include <boost/asio.hpp>
 #include <vector>
 #include "Client.h"
-// #include "AESWrapper.h"
+#include "../cryptopp_wrapper/AESWrapper.h"
 
 class SendTextMessage {
 private:

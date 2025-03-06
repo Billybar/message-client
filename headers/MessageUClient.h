@@ -13,6 +13,7 @@
 #include "SendSymKey.h"
 #include "../cryptopp_wrapper/RSAWrapper.h"
 #include "../cryptopp_wrapper/Base64Wrapper.h"
+#include "../cryptopp_wrapper/AESWrapper.h"
 
 class MessageUClient {
 private:
@@ -34,6 +35,7 @@ public:
 
     // Main run loop
     void run();
+
 
     // Menu operations
     void registerUser();

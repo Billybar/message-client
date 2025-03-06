@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-// ---- START of Get Exectuable Directory ----- //
+// ---- START of: Get Exectuable Directory ----- //
 
 std::string MessageUClient::getExeDirectory() {
     char buffer[MAX_PATH];
@@ -19,7 +19,7 @@ std::string MessageUClient::getServerInfoPath() {
 std::string MessageUClient::getMyInfoPath() {
     return getExeDirectory() + "\\my.info";
 }
-// ---- END of Get Exectuable Directory ----- //
+// ---- END of: Get Exectuable Directory ----- //
 
 
 MessageUClient::MessageUClient()

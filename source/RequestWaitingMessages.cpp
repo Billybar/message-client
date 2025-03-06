@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <stdexcept>
 
+
+
 void RequestWaitingMessages::getWaitingMessages(
     const std::string& address, int port, const std::array<uint8_t, 16>& myId) {
 
@@ -103,7 +105,6 @@ void RequestWaitingMessages::handleWaitingMessagesResponse(boost::asio::ip::tcp:
                         try {
                             // Get and decode the private key from Base64
                             std::string privKeyStr = m_myInfo.getPrivateKey();
-                            std::cout << "Private key before decoding: " << privKeyStr << std::endl;
 
                             std::string decodedKey = Base64Wrapper::decode(privKeyStr);
 
@@ -146,8 +147,18 @@ void RequestWaitingMessages::handleWaitingMessagesResponse(boost::asio::ip::tcp:
                         });
 
                     if (clientIt != m_clients.end() && clientIt->hasSymmetricKey()) {
-                        // TODO: Decrypt message using symmetric key
-                        std::cout << std::string(content.begin(), content.end()) << std::endl;
+                        // Create AES wrapper with the client's symmetric key
+                        const std::vector<uint8_t>& symKey = clientIt->getSymmetricKey();
+                        AESWrapper aesWrapper(symKey.data(), AESWrapper::DEFAULT_KEYLENGTH);
+
+                        // Decrypt the message
+                        std::string decryptedMsg = aesWrapper.decrypt(
+                            content.data(),
+                            messageSize
+                        );
+
+                        // Print decrypted message
+                        std::cout << decryptedMsg << std::endl;
                     }
                     else {
                         std::cout << "can't decrypt message" << std::endl;

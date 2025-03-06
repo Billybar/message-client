@@ -4,9 +4,11 @@
 #include <algorithm>
 #include <stdexcept>
 
+
 void SendTextMessage::sendMessage(const std::string& address, int port,
     const std::array<uint8_t, 16>& myId) {
 
+    // get peer user name
     std::string username;
     std::cout << "Enter username: ";
     std::getline(std::cin >> std::ws, username);
@@ -20,16 +22,12 @@ void SendTextMessage::sendMessage(const std::string& address, int port,
         throw std::runtime_error("Username not found in clients list");
     }
 
-    // -------------- START WITH CRYPTO -----------------------
-
-    /*if (!clientIt->hasSymmetricKey()) {
+    // check hasSymmetricKey
+    if (!clientIt->hasSymmetricKey()) {
         throw std::runtime_error("Must exchange symmetric key first");
-    }*/
+    }
 
-    // -------------- END WITH CRYPTO -----------------------
-
-
-
+    // get msg to send to peer
     std::string message;
     std::cout << "Enter message content: ";
     std::getline(std::cin >> std::ws, message);
@@ -59,9 +57,8 @@ void SendTextMessage::sendTextMessageRequest(boost::asio::ip::tcp::socket& socke
      
     
     // Encrypt message using recipient's symmetric key
-
-    /*AESWrapper aes(&clientIt->getSymmetricKey()[0], AESWrapper::DEFAULT_KEYLENGTH);
-    std::string encryptedMsg = aes.encrypt(message.c_str(), message.length());*/
+    AESWrapper aes(&clientIt->getSymmetricKey()[0], AESWrapper::DEFAULT_KEYLENGTH);
+    std::string encryptedMsg = aes.encrypt(message.c_str(), message.length());
     
     // -------------- END WITH CRYPTO -----------------------
     
@@ -70,7 +67,7 @@ void SendTextMessage::sendTextMessageRequest(boost::asio::ip::tcp::socket& socke
     // -------------- START WITHOUT CRYPTO -----------------------
     
     // Temporary dummy encrypted message
-    std::string encryptedMsg(message.length() + 16, 'X'); // Padding of 16 bytes
+    // std::string encryptedMsg(message.length() + 16, 'X'); // Padding of 16 bytes
 
     // -------------- END WITHOUT CRYPTO -----------------------
 

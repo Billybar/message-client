@@ -4,8 +4,9 @@
 #include <vector>
 #include "MyInfo.h"
 #include "Client.h"
-#include "../cryptopp_wrapper/Base64Wrapper.h"
 #include "../cryptopp_wrapper/RSAWrapper.h"
+#include "../cryptopp_wrapper/Base64Wrapper.h"
+#include "../cryptopp_wrapper/AESWrapper.h"
 
 class RequestWaitingMessages {
 private:
