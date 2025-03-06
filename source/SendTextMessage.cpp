@@ -58,7 +58,7 @@ void SendTextMessage::sendTextMessageRequest(boost::asio::ip::tcp::socket& socke
     
     // Encrypt message using recipient's symmetric key
     AESWrapper aes(&clientIt->getSymmetricKey()[0], AESWrapper::DEFAULT_KEYLENGTH);
-    std::string encryptedMsg = aes.encrypt(message.c_str(), message.length());
+    std::string encryptedMsg = aes.encrypt(message.c_str(), static_cast<unsigned int>(message.length()));
     
     // -------------- END WITH CRYPTO -----------------------
     
@@ -81,7 +81,7 @@ void SendTextMessage::sendTextMessageRequest(boost::asio::ip::tcp::socket& socke
     request.push_back(0x5B);
     request.push_back(0x02);
     // Payload size - 4 bytes (16 + 1 + 4 + message size)
-    uint32_t payloadSize = 16 + 1 + 4 + encryptedMsg.length();
+    uint32_t payloadSize = 16 + 1 + 4 + static_cast<uint32_t>(encryptedMsg.length());
     request.push_back(payloadSize & 0xFF);
     request.push_back((payloadSize >> 8) & 0xFF);
     request.push_back((payloadSize >> 16) & 0xFF);
@@ -91,7 +91,7 @@ void SendTextMessage::sendTextMessageRequest(boost::asio::ip::tcp::socket& socke
     // Message type - 1 byte
     request.push_back(MESSAGE_TYPE);
     // Content size - 4 bytes
-    uint32_t contentSize = encryptedMsg.length();
+    uint32_t contentSize = static_cast<uint32_t>(encryptedMsg.length());
     request.push_back(contentSize & 0xFF);
     request.push_back((contentSize >> 8) & 0xFF);
     request.push_back((contentSize >> 16) & 0xFF);

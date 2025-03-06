@@ -12,7 +12,7 @@ void RequestWaitingMessages::getWaitingMessages(
     boost::asio::io_context io_context;
     boost::asio::ip::tcp::socket socket(io_context);
     boost::asio::ip::tcp::endpoint endpoint(
-        boost::asio::ip::address::from_string(address), port);
+        boost::asio::ip::address::from_string(address), static_cast<unsigned short>(port));
 
     socket.connect(endpoint);
     sendWaitingMessagesRequest(socket, myId);
@@ -114,7 +114,7 @@ void RequestWaitingMessages::handleWaitingMessagesResponse(boost::asio::ip::tcp:
                             // Decrypt the symmetric key
                             std::string decryptedKey = rsaPrivate.decrypt(
                                 reinterpret_cast<const char*>(content.data()),
-                                content.size()
+                                static_cast<unsigned int>(content.size())
                             );
 
                             // Store decrypted symmetric key

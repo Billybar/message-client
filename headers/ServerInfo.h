@@ -37,7 +37,7 @@ public:
         try {
             serverPort = std::stoi(serverLine.substr(colonPos + 1));
         }
-        catch (const std::exception& e) {
+        catch (const std::exception&) {
             throw std::runtime_error("Invalid port number");
         }
     }

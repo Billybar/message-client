@@ -21,8 +21,8 @@ public:
             readFromFile(filePath);
             isRegistered = true;
         }
-        catch (const std::runtime_error& e) {
-            // TO DO: File doesn't exist or other error - user not registered
+        catch (const std::runtime_error&) {
+            isRegistered = false;
         }
     }
 
@@ -45,7 +45,12 @@ public:
         // Convert hex string to bytes
         for (size_t i = 0; i < 16; ++i) {
             std::string byteString = uuidHex.substr(i * 2, 2);
-            uuid[i] = std::stoul(byteString, nullptr, 16);
+            unsigned long value = std::stoul(byteString, nullptr, 16);
+            // Explicitly cast and check for potential overflow
+            if (value > 255) {
+                throw std::runtime_error("UUID byte value out of range");
+            }
+            uuid[i] = static_cast<uint8_t>(value);
         }
 
         // Read private key in base64 format

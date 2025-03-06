@@ -27,7 +27,7 @@ void SendSymKey::sendKey(const std::string& address, int port,
     }
 
 
-    // -------------- START WITH CRYPTO -----------------------
+    // -------------- START CRYPTO -----------------------
 
     // Generate symmetric key    -- TO DO --
     unsigned char symKey[AESWrapper::DEFAULT_KEYLENGTH];
@@ -69,36 +69,14 @@ void SendSymKey::sendKey(const std::string& address, int port,
     boost::asio::io_context io_context;
     boost::asio::ip::tcp::socket socket(io_context);
     boost::asio::ip::tcp::endpoint endpoint(
-        boost::asio::ip::address::from_string(address), port);
+        boost::asio::ip::address::from_string(address), static_cast<unsigned short>(port));
 
     socket.connect(endpoint);
     sendSymKeyRequest(socket, myId, clientIt->getId(), encryptedKeyVec);
     handleResponse(socket);
 
-    // -------------- END WITH CRYPTO -----------------------
+    // -------------- END CRYPTO -----------------------
 
-
-
-    //______________ START WITHOUT CRYPTO ___________________
-    
-    // Generate dummy symmetric key for now
-    //std::vector<uint8_t> dummySymKey(16, 0x42);  // 16 bytes filled with 0x42
-    //std::vector<uint8_t> dummyEncryptedKey(32, 0x42);  // Simulated encrypted key
-
-    //// Store symmetric key for this client
-    //clientIt->setSymmetricKey(dummySymKey);
-
-    //// Send encrypted key
-    //boost::asio::io_context io_context;
-    //boost::asio::ip::tcp::socket socket(io_context);
-    //boost::asio::ip::tcp::endpoint endpoint(
-    //    boost::asio::ip::address::from_string(address), port);
-
-    //socket.connect(endpoint);
-    //sendSymKeyRequest(socket, myId, clientIt->getId(), dummyEncryptedKey);
-    //handleResponse(socket);
-
-    //______________ END WITHOUT CRYPTO ___________________
 }
 
 void SendSymKey::sendSymKeyRequest(boost::asio::ip::tcp::socket& socket,
@@ -116,7 +94,7 @@ void SendSymKey::sendSymKeyRequest(boost::asio::ip::tcp::socket& socket,
     request.push_back(0x5B);
     request.push_back(0x02);
     // Payload size - 4 bytes (16 + 1 + 4 + content_size)
-    uint32_t payloadSize = 21 + encryptedKey.size();
+    uint32_t payloadSize = 21 + static_cast<uint32_t>(encryptedKey.size());
     request.insert(request.end(),
         reinterpret_cast<uint8_t*>(&payloadSize),
         reinterpret_cast<uint8_t*>(&payloadSize) + 4);
@@ -126,7 +104,7 @@ void SendSymKey::sendSymKeyRequest(boost::asio::ip::tcp::socket& socket,
     // Message type - 1 byte
     request.push_back(MESSAGE_TYPE);
     // Content size - 4 bytes
-    uint32_t contentSize = encryptedKey.size();
+    uint32_t contentSize = static_cast<uint32_t>(encryptedKey.size());
     request.insert(request.end(),
         reinterpret_cast<uint8_t*>(&contentSize),
         reinterpret_cast<uint8_t*>(&contentSize) + 4);
